@@ -8,7 +8,10 @@ export const loader = async ({ params }: { params: { slug: string } }) => {
   invariant(params.slug, `params.slug is required`);
 
   const post = await getPost(params.slug);
-  invariant(post, `Post ${params.slug} not found`);
+
+  if (!post) {
+    throw new Response("Not found", { status: 404 });
+  }
 
   const html = marked(post.markdown);
   return json({ ...post, html });
