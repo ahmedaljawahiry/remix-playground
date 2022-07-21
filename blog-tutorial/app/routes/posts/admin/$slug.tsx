@@ -1,7 +1,12 @@
-import { Form, useActionData, useTransition } from "@remix-run/react";
-import { createPost } from "~/models/post.server";
 import { json, redirect } from "@remix-run/node";
-import PostAdminIndex from "~/routes/posts/admin/index";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useTransition,
+} from "@remix-run/react";
+import { getPost, updatePost } from "~/models/post.server";
+import invariant from "tiny-invariant";
 import type {
   Request,
   Values,
@@ -13,6 +18,19 @@ import {
   LabelledTextArea,
   SubmitButton,
 } from "~/routes/posts/admin/form-utils";
+import PostAdminIndex from "~/routes/posts/admin/index";
+
+export const loader = async ({ params }: { params: { slug: string } }) => {
+  invariant(params.slug, `params.slug is required`);
+
+  const post = await getPost(params.slug);
+
+  if (!post) {
+    throw new Response("Not found", { status: 404 });
+  }
+
+  return json(post);
+};
 
 export async function action({ request }: Request) {
   const data = await request.formData();
@@ -27,7 +45,7 @@ export async function action({ request }: Request) {
   let response;
 
   if (title && slug && markdown) {
-    await createPost({ title, slug, markdown });
+    await updatePost({ title, slug, markdown });
     response = redirect("/posts/admin");
   } else {
     const errors: Values = {
@@ -41,7 +59,8 @@ export async function action({ request }: Request) {
   return response;
 }
 
-export default function NewPost() {
+export default function EditPost() {
+  const { slug, title, markdown } = useLoaderData<typeof loader>();
   const data = useActionData<ActionData>();
 
   const transition = useTransition();
@@ -53,26 +72,25 @@ export default function NewPost() {
       <p>
         <LabelledInput
           name="title"
-          defaultValue={data?.values.title}
+          defaultValue={data?.values.title || title}
           error={data?.errors.title}
         />
       </p>
       <p>
-        <LabelledInput
-          name="slug"
-          defaultValue={data?.values.slug}
-          error={data?.errors.slug}
-        />
+        <label>
+          Slug: {slug}
+          <input type="hidden" name="slug" value={slug} />
+        </label>
       </p>
       <p>
         <LabelledTextArea
           name="markdown"
-          defaultValue={data?.values.markdown}
+          defaultValue={data?.values.markdown || markdown}
           error={data?.errors.markdown}
         />
       </p>
       <p className="text-right">
-        <SubmitButton text="Create" />
+        <SubmitButton text="Edit" />
       </p>
     </Form>
   );

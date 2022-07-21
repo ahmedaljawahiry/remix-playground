@@ -14,27 +14,39 @@ export default function PostAdminRoute() {
   return <PostAdmin posts={posts} />;
 }
 
-type PostLink = Pick<Post, "slug" | "title">;
+function PostLinkLi({
+  slug,
+  title,
+  className = "text-blue-600 underline",
+}: {
+  slug: FormDataEntryValue | string | null;
+  title: FormDataEntryValue | string | null;
+  className?: string;
+}) {
+  if (slug && title) {
+    return (
+      <li>
+        <Link to={slug.toString()} className={className}>
+          {title.toString()}
+        </Link>
+      </li>
+    );
+  }
+  return null;
+}
 
-export function PostAdmin({ posts }: { posts: PostLink[] }) {
+export function PostAdmin({
+  posts,
+}: {
+  posts: Pick<Post, "slug" | "title">[];
+}) {
   const { submission } = useTransition();
 
-  const renderLi = (
-    slug: FormDataEntryValue | string | null,
-    title: FormDataEntryValue | string | null
-  ) => {
-    if (slug && title) {
-      const _slug = slug.toString();
-      return (
-        <li key={_slug}>
-          <Link to={_slug} className="text-blue-600 underline">
-            {title.toString()}
-          </Link>
-        </li>
-      );
-    }
-    return null;
-  };
+  const slugs = posts.map((p) => p.slug);
+
+  const editedTitle = submission?.formData.get("title");
+  const editedSlug = submission?.formData.get("slug");
+  const madeEdit = editedSlug && slugs.includes(editedSlug.toString());
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -42,13 +54,25 @@ export function PostAdmin({ posts }: { posts: PostLink[] }) {
       <div className="grid grid-cols-4 gap-6">
         <nav className="col-span-4 md:col-span-1">
           <ul>
-            {posts.map(({ slug, title }) => renderLi(slug, title))}
-            {submission
-              ? renderLi(
-                  submission.formData.get("slug"),
-                  submission.formData.get("title")
-                )
-              : null}
+            {posts.map(({ slug, title }) => (
+              <PostLinkLi
+                key={slug}
+                slug={slug}
+                title={
+                  slug === editedSlug && editedTitle
+                    ? editedTitle.toString()
+                    : title
+                }
+                className={slug === editedSlug ? "text-green-700" : undefined}
+              />
+            ))}
+            {submission && !madeEdit ? (
+              <PostLinkLi
+                slug={submission.formData.get("slug")}
+                title={submission.formData.get("title")}
+                className="text-green-700"
+              />
+            ) : null}
           </ul>
         </nav>
         <main className="col-span-4 md:col-span-3">
