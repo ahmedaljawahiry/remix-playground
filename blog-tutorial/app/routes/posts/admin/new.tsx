@@ -72,6 +72,7 @@ export default function NewPost() {
         />
       </p>
       <p className="text-right">
+        <input type="hidden" name="action" value="create" />
         <SubmitButton text="Create" />
       </p>
     </Form>

@@ -19,8 +19,8 @@ function PostLinkLi({
   title,
   className = "text-blue-600 underline",
 }: {
-  slug: FormDataEntryValue | string | null;
-  title: FormDataEntryValue | string | null;
+  slug?: FormDataEntryValue | string | null;
+  title?: FormDataEntryValue | string | null;
   className?: string;
 }) {
   if (slug && title) {
@@ -42,11 +42,14 @@ export function PostAdmin({
 }) {
   const { submission } = useTransition();
 
-  const slugs = posts.map((p) => p.slug);
+  const formAction = submission?.formData.get("action");
+  const formTitle = submission?.formData.get("title");
+  const formSlug = submission?.formData.get("slug");
 
-  const editedTitle = submission?.formData.get("title");
-  const editedSlug = submission?.formData.get("slug");
-  const madeEdit = editedSlug && slugs.includes(editedSlug.toString());
+  const _posts =
+    formAction === "delete"
+      ? posts.filter(({ slug }) => slug !== formSlug)
+      : posts;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -54,22 +57,20 @@ export function PostAdmin({
       <div className="grid grid-cols-4 gap-6">
         <nav className="col-span-4 md:col-span-1">
           <ul>
-            {posts.map(({ slug, title }) => (
+            {_posts.map(({ slug, title }) => (
               <PostLinkLi
                 key={slug}
                 slug={slug}
                 title={
-                  slug === editedSlug && editedTitle
-                    ? editedTitle.toString()
-                    : title
+                  slug === formSlug && formTitle ? formTitle.toString() : title
                 }
-                className={slug === editedSlug ? "text-green-700" : undefined}
+                className={slug === formSlug ? "text-yellow-700" : undefined}
               />
             ))}
-            {submission && !madeEdit ? (
+            {submission && formAction === "create" ? (
               <PostLinkLi
-                slug={submission.formData.get("slug")}
-                title={submission.formData.get("title")}
+                slug={formSlug}
+                title={formTitle}
                 className="text-green-700"
               />
             ) : null}

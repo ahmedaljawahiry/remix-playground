@@ -1,6 +1,7 @@
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
+  Link,
   useActionData,
   useLoaderData,
   useTransition,
@@ -68,30 +69,38 @@ export default function EditPost() {
   return transition.submission ? (
     <PostAdminIndex />
   ) : (
-    <Form method="post">
-      <p>
-        <LabelledInput
-          name="title"
-          defaultValue={data?.values.title || title}
-          error={data?.errors.title}
-        />
-      </p>
-      <p>
-        <label>
-          Slug: {slug}
-          <input type="hidden" name="slug" value={slug} />
-        </label>
-      </p>
-      <p>
-        <LabelledTextArea
-          name="markdown"
-          defaultValue={data?.values.markdown || markdown}
-          error={data?.errors.markdown}
-        />
-      </p>
-      <p className="text-right">
-        <SubmitButton text="Edit" />
-      </p>
-    </Form>
+    <div>
+      <div className="flex justify-end">
+        <Link to="delete" className="text-red-700">
+          Delete
+        </Link>
+      </div>
+      <Form method="post">
+        <p>
+          <LabelledInput
+            name="title"
+            defaultValue={data?.values.title || title}
+            error={data?.errors.title}
+          />
+        </p>
+        <p>
+          <label>
+            Slug: {slug}
+            <input type="hidden" name="slug" value={slug} />
+          </label>
+        </p>
+        <p>
+          <LabelledTextArea
+            name="markdown"
+            defaultValue={data?.values.markdown || markdown}
+            error={data?.errors.markdown}
+          />
+        </p>
+        <p className="text-right">
+          <input type="hidden" name="action" value="update" />
+          <SubmitButton text="Edit" />
+        </p>
+      </Form>
+    </div>
   );
 }

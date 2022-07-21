@@ -1,3 +1,6 @@
+import type { ChangeEvent } from "react";
+import { useEffect, useState } from "react";
+
 export type Request = {
   request: { formData: () => Promise<FormData> };
 };
@@ -26,7 +29,24 @@ type InputProps = {
   name: string;
 };
 
+function useDefaultValue(defaultValue: string | undefined | null) {
+  const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
+
+  return {
+    value: value || undefined,
+    onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setValue(e.target.value),
+  };
+}
+
 export function LabelledInput({ error, defaultValue, name }: InputProps) {
+  // https://remix.run/docs/en/v1/guides/data-loading#search-params-and-controlled-inputs
+  const { value, onChange } = useDefaultValue(defaultValue);
+
   return (
     <label>
       <span className="capitalize">{name}</span>
@@ -35,13 +55,16 @@ export function LabelledInput({ error, defaultValue, name }: InputProps) {
         type="text"
         name={name}
         className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-        defaultValue={defaultValue || undefined}
+        onChange={onChange}
+        value={value}
       />
     </label>
   );
 }
 
 export function LabelledTextArea({ error, defaultValue, name }: InputProps) {
+  const { value, onChange } = useDefaultValue(defaultValue);
+
   return (
     <>
       <label className="capitalize" htmlFor={name}>
@@ -54,7 +77,8 @@ export function LabelledTextArea({ error, defaultValue, name }: InputProps) {
         id={name}
         name={name}
         className="w-full rounded border border-gray-500 px-2 py-1 font-mono text-lg"
-        defaultValue={defaultValue || undefined}
+        onChange={onChange}
+        value={value || undefined}
       />
     </>
   );
